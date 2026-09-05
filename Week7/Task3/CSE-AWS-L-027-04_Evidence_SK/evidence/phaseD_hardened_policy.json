@@ -1,0 +1,51 @@
+{
+  "task_id": "CSE-AWS-L-027-04",
+  "phase": "Phase D - Independent Extension: Trust Policy Hardening",
+  "role": "cg-lab-role-solus",
+  "description": "Hardened AssumeRolePolicyDocument applied to remediate the unrestricted trust relationship identified in Phase C.",
+  "before": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "OriginalUnrestrictedTrust",
+        "Effect": "Allow",
+        "Principal": { "AWS": "arn:aws:iam::111111111111:root" },
+        "Action": "sts:AssumeRole"
+      }
+    ]
+  },
+  "after": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "RestrictedScopedTrust",
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "arn:aws:iam::111111111111:user/cg-lab-user-solus"
+        },
+        "Action": "sts:AssumeRole",
+        "Condition": {
+          "StringEquals": {
+            "sts:ExternalId": "secure-external-id-7f3a9c"
+          },
+          "IpAddress": {
+            "aws:SourceIp": "203.0.113.0/24"
+          },
+          "Bool": {
+            "aws:MultiFactorAuthPresent": "true"
+          },
+          "NumericLessThanEquals": {
+            "sts:DurationSeconds": "3600"
+          }
+        }
+      }
+    ]
+  },
+  "hardening_controls_applied": [
+    "Narrowed Principal from account root to the single explicit IAM ARN that legitimately needs the role, closing the account-wide trust that enabled hop 1.",
+    "Added sts:ExternalId condition to prevent confused-deputy / unauthorised chained assumption.",
+    "Added aws:SourceIp restriction limiting assumption to the approved lab network range.",
+    "Added aws:MultiFactorAuthPresent condition requiring MFA on the calling principal's session.",
+    "Capped sts:DurationSeconds at 3600 seconds to reduce the exposure window of any issued temporary credentials."
+  ]
+}

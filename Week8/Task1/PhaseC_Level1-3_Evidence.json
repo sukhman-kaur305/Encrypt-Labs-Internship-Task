@@ -1,0 +1,170 @@
+{
+  "task_id": "CSE-AWS-P-029-08",
+  "phase": "Phase C - Core Execution: flaws.cloud Levels 1-3",
+  "note": "TEMPLATE - replace every bracketed [ ] field with your own real, redacted output. Never store a full AccessKeyId, SecretAccessKey, SessionToken, or full 12-digit Account ID in this file - use '[REDACTED]' or the last 4 digits only.",
+
+  "level_1": {
+    "objective": "Use DNS reconnaissance to identify the AWS hosting pattern, determine whether the bucket can be listed anonymously, and locate the next-level artifact without modifying any object.",
+    "steps": [
+      {
+        "step": 1,
+        "action": "DNS reconnaissance",
+        "command": "dig [target-domain]",
+        "output": "[paste real output]",
+        "observation": "[what does the DNS record reveal about hosting?]"
+      },
+      {
+        "step": 2,
+        "action": "Test anonymous ListBucket",
+        "command": "aws s3 ls s3://[bucket-name] --no-sign-request",
+        "output": "[paste real output]",
+        "observation": "[was listing allowed or denied?]"
+      },
+      {
+        "step": 3,
+        "action": "Test anonymous GetObject on known paths",
+        "command": "[curl or aws s3 cp command against a specific object]",
+        "output": "[paste real output]",
+        "observation": "[does GetObject work independent of ListBucket?]"
+      },
+      {
+        "step": 4,
+        "action": "Locate next-level artifact",
+        "command": "[command used]",
+        "output": "[paste real, redacted output]",
+        "observation": "[]"
+      }
+    ],
+    "findings_summary": {
+      "misconfiguration": "[ ]",
+      "aws_service_api": "[ ]",
+      "evidence_reference": "[screenshot/log filename]",
+      "business_impact": "[ ]",
+      "mitre_attack_mapping": ["T1530"],
+      "preventive_controls": ["[ ]", "[ ]"]
+    }
+  },
+
+  "level_2": {
+    "objective": "Use your sandbox AWS profile to test the level as an authenticated principal; compare anonymous versus authenticated behavior.",
+    "steps": [
+      {
+        "step": 1,
+        "action": "Confirm anonymous access denied",
+        "command": "aws s3 ls s3://[level2-bucket] --no-sign-request",
+        "output": "[paste real output]",
+        "observation": "[]"
+      },
+      {
+        "step": 2,
+        "action": "Create dedicated sandbox profile",
+        "command": "aws configure --profile flaws-level2",
+        "output": "[confirm configured - do not include key material]",
+        "observation": "[]"
+      },
+      {
+        "step": 3,
+        "action": "Retry authenticated",
+        "command": "aws s3 ls s3://[level2-bucket] --profile flaws-level2",
+        "output": "[paste real output]",
+        "observation": "[what changed vs. step 1?]"
+      },
+      {
+        "step": 4,
+        "action": "Inspect grantee (if permitted)",
+        "command": "[aws s3api get-bucket-acl / get-bucket-policy]",
+        "output": "[paste real output]",
+        "observation": "[AuthenticatedUsers group vs specific account ARN]"
+      },
+      {
+        "step": 5,
+        "action": "Retrieve Level 3 pointer",
+        "command": "[command]",
+        "output": "[paste real, redacted output]",
+        "observation": "[]"
+      }
+    ],
+    "findings_summary": {
+      "misconfiguration": "[ ]",
+      "aws_service_api": "[ ]",
+      "evidence_reference": "[screenshot/log filename]",
+      "business_impact": "[ ]",
+      "mitre_attack_mapping": ["T1078.004"],
+      "preventive_controls": ["[ ]", "[ ]"]
+    }
+  },
+
+  "level_3": {
+    "objective": "Synchronize only the intended public challenge content, inspect hidden files and Git history, identify the historical credential exposure, and validate the challenge-provided identity with a separate named profile.",
+    "steps": [
+      {
+        "step": 1,
+        "action": "Sync public content",
+        "command": "aws s3 sync s3://[level3-bucket] . --no-sign-request",
+        "output": "[paste real output - file listing only]",
+        "observation": "[]"
+      },
+      {
+        "step": 2,
+        "action": "Check for hidden files",
+        "command": "ls -la",
+        "output": "[paste real output]",
+        "observation": "[.git directory present?]"
+      },
+      {
+        "step": 3,
+        "action": "Walk commit history",
+        "command": "git log --oneline --all",
+        "output": "[paste real output]",
+        "observation": "[]"
+      },
+      {
+        "step": 4,
+        "action": "Inspect suspicious commit",
+        "command": "git show [commit-hash]",
+        "output": "[paste REDACTED output - mask the actual key value]",
+        "observation": "[credential type identified, e.g. AKIA-format access key]"
+      },
+      {
+        "step": 5,
+        "action": "Configure isolated profile with discovered credential",
+        "command": "aws configure --profile flaws-level3-leaked",
+        "output": "[confirm configured - do not include key material]",
+        "observation": "[]"
+      },
+      {
+        "step": 6,
+        "action": "Validate identity",
+        "command": "aws sts get-caller-identity --profile flaws-level3-leaked",
+        "output": {
+          "UserId": "[REDACTED]",
+          "Account": "[REDACTED - last 4 digits only]",
+          "Arn": "[REDACTED - principal type only]"
+        },
+        "observation": "[]"
+      },
+      {
+        "step": 7,
+        "action": "Enumerate minimum resources for next level",
+        "command": "[command]",
+        "output": "[paste real, minimal, redacted output]",
+        "observation": "[]"
+      }
+    ],
+    "findings_summary": {
+      "misconfiguration": "[ ]",
+      "aws_service_api": "[ ]",
+      "evidence_reference": "[screenshot/log filename]",
+      "business_impact": "[ ]",
+      "mitre_attack_mapping": ["T1552.001"],
+      "preventive_controls": ["[ ]", "[ ]"]
+    }
+  },
+
+  "redaction_checklist": {
+    "no_full_access_keys": false,
+    "no_full_account_ids": false,
+    "no_live_solution_urls_beyond_required": false,
+    "all_screenshots_saved_in_evidence_folder": false
+  }
+}

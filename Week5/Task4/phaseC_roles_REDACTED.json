@@ -1,0 +1,54 @@
+{
+    "Role": {
+        "Path": "/",
+        "RoleName": "LambdaSecretAccessRole",
+        "RoleId": "[REDACTED-ROLE-ID]",
+        "Arn": "[REDACTED-ARN]",
+        "CreateDate": "2026-08-29T20:35:58+00:00",
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": "lambda.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                }
+            ]
+        },
+        "Description": "Allows Lambda functions to call AWS services on your behalf.",
+        "MaxSessionDuration": 3600,
+        "RoleLastUsed": {
+            "LastUsedDate": "2026-08-29T20:58:57+00:00",
+            "Region": "us-east-2"
+        }
+    }
+}
+{
+    "Role": {
+        "Path": "/",
+        "RoleName": "LambdaExecRole",
+        "RoleId": "[REDACTED-ROLE-ID]",
+        "Arn": "[REDACTED-ARN]",
+        "CreateDate": "2026-08-30T21:42:03+00:00",
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": "lambda.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                }
+            ]
+        },
+        "Description": "Allows Lambda functions to call AWS services on your behalf.",
+        "MaxSessionDuration": 3600,
+        "RoleLastUsed": {
+            "LastUsedDate": "2026-08-30T21:53:58+00:00",
+            "Region": "us-east-2"
+        }
+    }
+}

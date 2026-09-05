@@ -1,0 +1,42 @@
+Script started on 2026-08-26 01:10:59+00:00 [TERM="screen-256color" TTY="/dev/pts/2" COLUMNS="183" LINES="24"]
+kcloudshell-user@:~\[?2004h~ $ script phaseC_results.log[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[Kecho "=== S3TESTER LIST BUCKET TEST ==="
+[?2004l=== S3TESTER LIST BUCKET TEST ===
+kcloudshell-user@:~\[?2004h~ $ aws s3 ls s3://student-s3-lab-encryptlabs1 --profile s3tester
+[?2004l
+aws: [ERROR]: An error occurred (AccessDenied) when calling the ListObjectsV2 operation: User: arn:aws:iam::REDACTED-ACCT-ID:user/s3tester is not authorized to perform: s3:ListBucket on resource: "arn:aws:s3:::student-s3-lab-encryptlabs1" because no identity-based policy allows the s3:ListBucket action
+kcloudshell-user@:~\[?2004h~ $ 
+[?2004lkcloudshell-user@:~\[?2004h~ $ echo "=== OBJECT ACL TEST ==="
+[?2004l=== OBJECT ACL TEST ===
+kcloudshell-user@:~\[?2004h~ $ aws s3api get-object-acl \
+[?2004l[?2004h>   --bucket student-s3-lab-encryptlabs1 \
+[?2004l[?2004h>   --key confidential.txt \
+[?2004l[?2004h>   --profile s3tester
+[?2004l
+aws: [ERROR]: An error occurred (AccessDenied) when calling the GetObjectAcl operation: User: arn:aws:iam::REDACTED-ACCT-ID:user/s3tester is not authorized to perform: s3:GetObjectAcl on resource: "arn:aws:s3:::student-s3-lab-encryptlabs1/confidential.txt" because no identity-based policy allows the s3:GetObjectAcl action
+kcloudshell-user@:~\[?2004h~ $ 
+[?2004lkcloudshell-user@:~\[?2004h~ $ echo "=== S3READER READ TEST ==="
+[?2004l=== S3READER READ TEST ===
+kcloudshell-user@:~\[?2004h~ $ aws s3 cp \
+[?2004l[?2004h>   s3://student-s3-lab-encryptlabs1/confidential.txt \
+[?2004l[?2004h>   final-reader-test.txt \
+[?2004l[?2004h>   --profile s3reader
+[?2004lCompleted 30 Bytes/30 Bytes (763 Bytes/s) with 1 file(s) remainingdownload: s3://student-s3-lab-encryptlabs1/confidential.txt to ./final-reader-test.txt
+kcloudshell-user@:~\[?2004h~ $ 
+[?2004lkcloudshell-user@:~\[?2004h~ $ echo "=== VERIFY DOWNLOADED CONTENT ==="
+[?2004l=== VERIFY DOWNLOADED CONTENT ===
+kcloudshell-user@:~\[?2004h~ $ cat final-reader-test.txt
+[?2004lConfidential S3 lab test file
+kcloudshell-user@:~\[?2004h~ $ 
+[?2004lkcloudshell-user@:~\[?2004h~ $ echo "=== ANONYMOUS ACCESS TEST ==="
+[?2004l=== ANONYMOUS ACCESS TEST ===
+kcloudshell-user@:~\[?2004h~ $ aws s3api get-object \
+[?2004l[?2004h>   --bucket student-s3-lab-encryptlabs1 \
+[?2004l[?2004h>   --key confidential.txt \
+[?2004l[?2004h>   anonymous-test.txt \
+[?2004l[?2004h>   --no-sign-request
+[?2004l
+aws: [ERROR]: An error occurred (AccessDenied) when calling the GetObject operation: Access Denied
+kcloudshell-user@:~\[?2004h~ $ exit
+[?2004lexit
+
+Script done on 2026-08-26 01:11:20+00:00 [COMMAND_EXIT_CODE="254"]

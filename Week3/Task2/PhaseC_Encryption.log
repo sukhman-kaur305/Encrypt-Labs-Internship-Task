@@ -1,0 +1,12 @@
+{
+    "AcceptRanges": "bytes",
+    "LastModified": "2026-08-28T17:07:18+00:00",
+    "ContentLength": 30,
+    "ETag": "[REDACTED]",
+    "VersionId": "[REDACTED]",
+    "ContentType": "text/plain",
+    "ServerSideEncryption": "aws:kms",
+    "Metadata": {},
+    "SSEKMSKeyId": "arn:aws:kms:us-east-2:[REDACTED]:key/[REDACTED]",
+    "BucketKeyEnabled": true
+}

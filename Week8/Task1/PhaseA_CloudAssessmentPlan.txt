@@ -1,0 +1,98 @@
+TASK ID: CSE-AWS-P-029-08
+PHASE A — Cloud Assessment Plan & Methodology
+Capstone: End-to-End AWS Cloud Security Assessment (flaws.cloud Levels 1-6)
+
+====================================================================
+1. AUTHORIZED SCOPE
+====================================================================
+- Target: flaws.cloud, Levels 1 through 6, as intended by the challenge
+  author (Scott Piper / summitroute.com). No level beyond 6 is in scope
+  for this capstone.
+- Authenticated activity (Level 2) and temporary resource creation
+  (Level 4) are performed ONLY inside a dedicated personal/training AWS
+  sandbox account — never a production or employer account.
+- No scanning, enumeration, or testing of any AWS account, bucket, API,
+  or domain outside those explicitly presented by the challenge.
+- No destructive, denial-of-service, brute-force, or persistence
+  actions against flaws.cloud infrastructure.
+- Hints will only be used when independent analysis stalls, and each
+  use will be logged with a timestamp and reason in PhaseB_SetupLog.txt
+  / the relevant phase command log.
+- No walkthroughs will be read before attempting each level
+  independently.
+
+====================================================================
+2. RULES OF ENGAGEMENT SUMMARY
+====================================================================
+Allowed:
+  - Complete the intended challenge progression for Levels 1-6.
+  - Use the sandbox account for Level 2 authenticated calls and Level 4
+    temporary EBS/EC2 resources, with billing alerts enabled.
+  - Record redacted CLI output, screenshots, and command logs as
+    evidence.
+Prohibited:
+  - Testing any resource not presented by the challenge itself.
+  - Storing live access keys, session tokens, or account IDs in any
+    submitted file.
+  - Using a production/employer AWS account for any part of this task.
+
+====================================================================
+3. METHODOLOGY / FINDINGS TEMPLATE (used for every level)
+====================================================================
+For each of Levels 1-6, the following fields will be captured:
+  - Level #
+  - AWS service(s) involved
+  - Misconfiguration / root cause
+  - Evidence (redacted command + output, or screenshot reference)
+  - Attack path (how this level's weakness was reached and what it led to)
+  - CIA impact (Confidentiality / Integrity / Availability)
+  - Likelihood (1-5)
+  - Impact (1-5)
+  - Risk score (Likelihood x Impact) and rating (Low/Medium/High/Critical)
+  - MITRE ATT&CK mapping
+  - Remediation (at least two preventive controls)
+  - Validation method (how the fix would be confirmed)
+
+====================================================================
+4. CORE AWS CONCEPTS REVIEWED BEFORE EXECUTION
+====================================================================
+  - AWS Shared Responsibility Model — where AWS's responsibility ends
+    and the customer's begins for each service used in this challenge
+    (S3, IAM, EC2, EBS, Lambda, API Gateway).
+  - Least privilege and the difference between identity-based and
+    resource-based (bucket/trust) policies.
+  - S3 permission layers: bucket policy, ACLs, Block Public Access, and
+    the distinction between "static website hosting" (object GET) and
+    "list bucket" (ListBucket API) — these are separate permissions and
+    a bucket can allow one without the other.
+  - The AWS "AuthenticatedUsers" grantee group refers to any AWS
+    account holder globally, not members of a specific organization —
+    a common and dangerous misunderstanding.
+  - Temporary STS credentials: structure (AccessKeyId, SecretAccessKey,
+    SessionToken), expiry, and why a session token must accompany the
+    access key/secret pair when configuring a CLI profile.
+  - EBS snapshot sharing and the risk of a snapshot being shared
+    "public" vs. shared to a specific account ID.
+  - EC2 Instance Metadata Service (IMDS): the difference between IMDSv1
+    (no request signing, vulnerable to basic SSRF) and IMDSv2
+    (session-oriented, PUT-based token requirement that mitigates most
+    SSRF-to-metadata paths).
+  - IAM policy evaluation logic: explicit deny > allow, and how
+    Lambda/API Gateway resource policies interact with IAM identity
+    policies.
+
+====================================================================
+5. HINT / WALKTHROUGH USAGE LOG
+====================================================================
+(To be completed during actual execution — record level, hint used,
+timestamp, and one-sentence justification for why independent analysis
+required it.)
+
+Level | Hint Used (Y/N) | Timestamp | Justification
+------|-----------------|-----------|----------------
+  1   |                 |           |
+  2   |                 |           |
+  3   |                 |           |
+  4   |                 |           |
+  5   |                 |           |
+  6   |                 |           |

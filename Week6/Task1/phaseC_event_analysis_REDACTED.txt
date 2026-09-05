@@ -1,0 +1,64 @@
+Phase C – Core Execution: CloudTrail Event Analysis
+
+Analyst: [REDACTED]
+Environment: Personal AWS lab environment
+Trail: SecurityTrail
+
+Objective
+Analyze AWS CloudTrail events to identify activity that could represent a potential security incident.
+
+1. IAM User Creation – CreateUser
+Summary:
+A temporary IAM user named CloudTrail-TestUser was created as part of authorized lab activity. CloudTrail records this security-relevant administrative action, including the initiating identity, event time, source IP address, AWS service, and request parameters.
+
+Security Analysis:
+Creating an IAM user is a sensitive identity-management action. In this lab, the activity was expected and authorized. In a production environment, an unexpected CreateUser event should be investigated because an attacker with compromised privileges could create a new identity to establish persistence.
+
+Risk Assessment:
+LOW for this authorized lab activity; potentially HIGH if the user creation is unexpected or performed by an unknown identity.
+
+2. IAM Policy Change – AttachUserPolicy
+Summary:
+The AWS managed policy AmazonS3ReadOnlyAccess was attached to the temporary CloudTrail-TestUser to generate a policy-change event for analysis.
+
+Security Analysis:
+Permission changes should be monitored because attaching policies can increase an identity's access to AWS resources. An unexpected AttachUserPolicy event could indicate privilege escalation or unauthorized modification of IAM permissions. Analysts should verify the initiating identity, policy ARN, target user, source IP address, timestamp, and whether the change was approved.
+
+Risk Assessment:
+LOW for this authorized lab activity; potentially MEDIUM to HIGH if an unexpected or highly privileged policy is attached.
+
+3. Unauthorized API Calls
+Indicators:
+CloudTrail events containing error codes or messages such as AccessDenied or UnauthorizedOperation can indicate that an identity attempted an API action without sufficient permission.
+
+Security Analysis:
+Repeated authorization failures can result from configuration mistakes, but they can also indicate reconnaissance, privilege probing, compromised credentials, or an attacker attempting actions beyond the permissions available to the compromised identity.
+
+Risk Assessment:
+MEDIUM and should be correlated with the identity, source IP address, requested API actions, frequency, and surrounding events.
+
+4. Root Account Usage
+Indicators:
+CloudTrail userIdentity information showing the identity type as Root.
+
+Security Analysis:
+Routine use of the AWS root user represents elevated security risk because the root identity has extensive control over the AWS account. Unexpected root activity should be treated as high priority and investigated immediately, particularly when associated with IAM, billing, logging, security, or account configuration changes.
+
+Risk Assessment:
+HIGH when root usage is unexpected.
+
+5. Policy Changes
+Example events:
+AttachUserPolicy, DetachUserPolicy, PutUserPolicy, CreatePolicyVersion, AttachRolePolicy, and PutRolePolicy.
+
+Security Analysis:
+IAM policy modifications can change effective permissions and may enable privilege escalation. Unexpected policy changes should be reviewed against approved administrative activity and correlated with the actor, source IP, affected identity, and subsequent API calls.
+
+Risk Assessment:
+MEDIUM to HIGH depending on the permissions granted and whether the action was authorized.
+
+Overall AI Summary
+The analyzed CloudTrail activity demonstrates how AWS records identity and permission-management operations for security monitoring and investigation. The IAM user creation and AmazonS3ReadOnlyAccess policy attachment were intentional lab activities and are not considered incidents in this environment. In a production account, unexpected IAM user creation, permission changes, unauthorized API attempts, and root account usage are important indicators that warrant investigation. CloudTrail data should be correlated with the initiating identity, source IP address, timestamp, affected resources, and surrounding events before determining whether an incident occurred.
+
+Conclusion
+No malicious activity is asserted from the authorized lab actions described above. The exercise demonstrates how CloudTrail can support detection of unauthorized access attempts, root-account usage, persistence through new IAM identities, and privilege escalation through IAM policy modifications.

@@ -1,0 +1,5 @@
+Amazon S3 provides multiple mechanisms for controlling access to buckets and objects. Access Control Lists (ACLs) are a legacy S3 access-control mechanism that can grant basic permissions to specific AWS accounts or predefined groups at the bucket or individual object level. However, ACLs provide limited flexibility and are disabled by default for modern S3 buckets using Bucket Owner Enforced Object Ownership.
+
+Bucket policies are resource-based JSON policies attached to an S3 bucket. They provide more flexible access control by specifying principals, actions, resources, and conditions. IAM policies are identity-based policies attached to users, groups, or roles and determine which S3 operations those identities can perform.
+
+For modern S3 environments, AWS recommends using IAM and bucket policies with ACLs disabled. Policies generally provide more flexible and manageable granular access control, while object ACLs can provide per-object grants when ACLs are specifically required.

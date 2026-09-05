@@ -1,0 +1,153 @@
+{
+  "task_id": "CSE-AWS-P-029-08",
+  "phase": "Phase E - Defensive Engineering: Hardened Policy Examples",
+  "note": "These are generic, reusable hardened control examples illustrating the AWS security principles behind each flaws.cloud level theme. They are written for a sandbox/reference architecture and use placeholder account IDs / ARNs - replace with your own sandbox values before applying, and validate with 'aws accessanalyzer validate-policy' and/or IAM Policy Simulator prior to use.",
+
+  "1_restrictive_s3_bucket_policy": {
+    "theme": "Level 1/2 - public listing and AuthenticatedUsers exposure",
+    "policy": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "AllowWebsiteObjectReadOnly",
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": "s3:GetObject",
+          "Resource": "arn:aws:s3:::example-static-site-bucket/public/*",
+          "Condition": {
+            "StringEquals": { "aws:PrincipalType": "Anonymous" }
+          }
+        },
+        {
+          "Sid": "DenyListBucketForEveryone",
+          "Effect": "Deny",
+          "Principal": "*",
+          "Action": "s3:ListBucket",
+          "Resource": "arn:aws:s3:::example-static-site-bucket"
+        }
+      ]
+    },
+    "hardening_notes": [
+      "Grants s3:GetObject only, and only under the /public/ prefix - never s3:ListBucket to '*' or to the AuthenticatedUsers group URI.",
+      "Explicit Deny on ListBucket ensures no later, broader statement can accidentally reopen bucket enumeration.",
+      "Should be paired with account-level S3 Block Public Access unless the bucket is intentionally a public static website."
+    ]
+  },
+
+  "2_credential_and_secret_handling": {
+    "theme": "Level 3 - secrets committed to Git history",
+    "controls": [
+      "Enforce a pre-commit hook (git-secrets or gitleaks) that blocks commits containing AWS access-key-shaped strings (AKIA... / ASIA...).",
+      "Prefer IAM roles and STS AssumeRole over long-lived IAM user access keys wherever a workload can use them.",
+      "If a static key is unavoidable, apply an IAM permissions boundary limiting its maximum possible privilege, and set a mandatory rotation policy (e.g. 90 days) enforced by an AWS Config rule (access-keys-rotated).",
+      "On any suspected exposure, immediately deactivate the key (aws iam update-access-key --status Inactive) before investigating, then delete and reissue."
+    ],
+    "example_permissions_boundary": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "MaxPermissionsForServiceAccount",
+          "Effect": "Allow",
+          "Action": [
+            "s3:GetObject",
+            "s3:PutObject"
+          ],
+          "Resource": "arn:aws:s3:::example-app-bucket/*"
+        },
+        {
+          "Sid": "DenyAllIAMActions",
+          "Effect": "Deny",
+          "Action": "iam:*",
+          "Resource": "*"
+        }
+      ]
+    }
+  },
+
+  "3_ebs_snapshot_sharing_restriction": {
+    "theme": "Level 4 - public EBS snapshot exposure",
+    "cli_hardening": [
+      "aws ec2 enable-snapshot-block-public-access --state block-all-sharing",
+      "aws ec2 get-snapshot-block-public-access-state",
+      "aws ec2 modify-snapshot-attribute --snapshot-id snap-EXAMPLE --create-volume-permission 'Remove=[{Group=all}]'",
+      "aws ec2 modify-snapshot-attribute --snapshot-id snap-EXAMPLE --create-volume-permission 'Add=[{UserId=111111111111}]'"
+    ],
+    "hardening_notes": [
+      "Account/Region-level Block Public Access for Snapshots prevents any future accidental public share, even if an individual snapshot's attribute is misconfigured.",
+      "Sharing should always target explicit account IDs, never the 'all' group."
+    ]
+  },
+
+  "4_ec2_imdsv2_enforcement": {
+    "theme": "Level 5 - SSRF to Instance Metadata Service",
+    "cli_hardening": [
+      "aws ec2 modify-instance-metadata-options --instance-id i-EXAMPLE --http-tokens required --http-put-response-hop-limit 1 --http-endpoint enabled",
+      "aws ec2 run-instances --metadata-options 'HttpTokens=required,HttpPutResponseHopLimit=1,HttpEndpoint=enabled' ..."
+    ],
+    "hardening_notes": [
+      "HttpTokens=required enforces IMDSv2, which requires a signed PUT request to obtain a session token - a basic SSRF that only performs a GET request (as in the classic Capital One-style pattern) can no longer reach credentials.",
+      "HttpPutResponseHopLimit=1 prevents the token-request PUT from being proxied through an extra network hop, further limiting SSRF reach.",
+      "This is a defense-in-depth control - it does not replace fixing the underlying SSRF vulnerability in the application/proxy layer."
+    ]
+  },
+
+  "5_least_privilege_instance_role": {
+    "theme": "Level 5 - overly broad instance role attached alongside IMDS exposure",
+    "policy": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "AppSpecificReadOnly",
+          "Effect": "Allow",
+          "Action": [
+            "s3:GetObject"
+          ],
+          "Resource": "arn:aws:s3:::example-app-data-bucket/*"
+        }
+      ]
+    },
+    "hardening_notes": [
+      "Replaces a broad managed policy (e.g. AmazonS3FullAccess or AdministratorAccess) with the single action and resource the application actually needs.",
+      "Even if IMDS credentials are stolen despite IMDSv2, the blast radius is limited to read access on one bucket rather than the whole account."
+    ]
+  },
+
+  "6_scoped_readonly_audit_role": {
+    "theme": "Level 6 - IAM/Lambda/API Gateway permission discovery via an over-scoped audit identity",
+    "policy": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "ReadOnlyLambdaAndApiGatewayMetadataOnly",
+          "Effect": "Allow",
+          "Action": [
+            "lambda:GetFunctionConfiguration",
+            "lambda:ListFunctions",
+            "apigateway:GET"
+          ],
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": { "aws:RequestedRegion": "us-east-1" }
+          }
+        },
+        {
+          "Sid": "DenyPolicyAndCodeAccess",
+          "Effect": "Deny",
+          "Action": [
+            "lambda:GetFunction",
+            "lambda:GetPolicy",
+            "iam:ListAttachedRolePolicies",
+            "iam:ListPolicyVersions",
+            "iam:GetPolicyVersion"
+          ],
+          "Resource": "*"
+        }
+      ]
+    },
+    "hardening_notes": [
+      "A read-oriented 'audit' identity should be scoped with an explicit permissions boundary and, ideally, no additional customer-managed policy attachments beyond a vetted baseline.",
+      "Explicitly denying access to function code (GetFunction) and IAM policy document contents (GetPolicyVersion) still allows architecture-level visibility (what exists) without exposing implementation detail or the exact permission set attached to sensitive roles.",
+      "Pair with periodic IAM Access Analyzer 'unused access' review of the audit role to catch permission creep over time."
+    ]
+  }
+}

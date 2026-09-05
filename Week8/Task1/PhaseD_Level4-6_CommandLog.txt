@@ -1,0 +1,173 @@
+only text file created for reference
+
+TASK ID: CSE-AWS-P-029-08
+PHASE D — Levels 4-6 Command Log
+(TEMPLATE — run each command yourself, then paste the real redacted output.
+Redact any access key, secret key, session token, or full account ID before saving.)
+
+====================================================================
+LEVEL 4 — Public EBS Snapshot Exposure
+====================================================================
+Objective: Using only permissions obtained through the challenge,
+identify the relevant AWS account and snapshot; in your own sandbox,
+create the minimum temporary EBS/EC2 resources required to inspect it,
+mount read-only where practical, locate the artifact, then delete every
+temporary resource.
+
+Step 1 — Identify the relevant account/snapshot
+$ [command used to discover the account ID / snapshot ID]
+[paste real, redacted output]
+
+Step 2 — Confirm snapshot is visible/shared to your sandbox account
+$ aws ec2 describe-snapshots --snapshot-ids snap-[id] --profile sandbox
+[paste real output]
+
+Step 3 — Create the minimum temporary resources (in YOUR sandbox, YOUR Region)
+$ aws ec2 create-volume --snapshot-id snap-[id] --availability-zone [az] --profile sandbox
+[paste real output]
+
+$ aws ec2 run-instances --image-id ami-[id] --instance-type t3.micro --profile sandbox
+[paste real output]
+
+$ aws ec2 attach-volume --volume-id vol-[id] --instance-id i-[id] --device /dev/sdf --profile sandbox
+[paste real output]
+
+Step 4 — Mount read-only and inspect
+$ [mount command, e.g. sudo mount -o ro /dev/xvdf1 /mnt/snap]
+[paste real output]
+
+$ [command used to locate the artifact]
+[paste real, redacted output]
+
+Step 5 — CLEANUP (mandatory — capture before/after evidence)
+$ aws ec2 detach-volume --volume-id vol-[id] --profile sandbox
+[paste real output]
+
+$ aws ec2 delete-volume --volume-id vol-[id] --profile sandbox
+[paste real output]
+
+$ aws ec2 terminate-instances --instance-ids i-[id] --profile sandbox
+[paste real output]
+
+$ aws ec2 describe-instances --profile sandbox --query 'Reservations[].Instances[].State.Name'
+[paste real output — should show no running/temporary instances]
+
+$ aws ec2 describe-volumes --profile sandbox
+[paste real output — should show no leftover volumes from this exercise]
+
+--> Save a screenshot of the empty/terminated state as PhaseD_Level4_Cleanup.png
+
+Level 4 Findings Summary:
+  Misconfiguration: [ ]
+  AWS service/API: [ ]
+  Evidence: [screenshot/log reference]
+  Business impact: [ ]
+  MITRE mapping: [ ]
+  Preventive controls (>=2): [ ]
+
+====================================================================
+LEVEL 5 — SSRF and EC2 Instance Metadata
+====================================================================
+Objective: Analyze the HTTP proxy behavior, determine whether it reaches
+the Instance Metadata Service, identify the exposed temporary role
+credentials, configure them with the session token, and use only the
+permissions needed to find Level 6.
+
+Step 1 — Analyze proxy behavior
+$ curl [proxy endpoint/parameter under test]
+[paste real, redacted output]
+
+Observation: [does the proxy fetch an arbitrary URL? what happens when pointed at 169.254.169.254?]
+
+Step 2 — Confirm IMDS reachability
+$ curl [proxy endpoint pointed at IMDS path]
+[paste real, redacted output — do not include the live role name if it's sensitive; describe generically if needed]
+
+Step 3 — Retrieve temporary role credentials via the proxy
+[paste REDACTED confirmation only — e.g. "AccessKeyId and SessionToken retrieved, both redacted below"]
+AccessKeyId:     [REDACTED]
+SecretAccessKey: [REDACTED]
+SessionToken:    [REDACTED — note length/presence only]
+
+Step 4 — Configure and use the credentials
+$ export AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_SESSION_TOKEN=...
+$ aws sts get-caller-identity
+{
+  "UserId":  "[REDACTED]",
+  "Account": "[REDACTED]",
+  "Arn":     "[REDACTED — role type only]"
+}
+
+Step 5 — Use minimum permissions to find Level 6
+$ [command]
+[paste real, minimal, redacted output]
+
+Level 5 Findings Summary:
+  Misconfiguration: [ ]
+  AWS service/API: [ ]
+  Evidence: [screenshot/log reference]
+  Business impact: [ ]
+  MITRE mapping: [ ]
+  Preventive controls (>=2 — must include IMDSv2, least-privilege role): [ ]
+
+====================================================================
+LEVEL 6 — IAM and Serverless Permission Discovery
+====================================================================
+Objective: Use the challenge-provided audit identity, verify the caller,
+enumerate attached policies/policy versions, identify the Lambda/API
+Gateway relationship, and determine the intended API stage/endpoint.
+
+Step 1 — Verify caller
+$ aws sts get-caller-identity --profile flaws-level6-audit
+{
+  "UserId":  "[REDACTED]",
+  "Account": "[REDACTED]",
+  "Arn":     "[REDACTED]"
+}
+
+Step 2 — Enumerate attached policies
+$ aws iam list-attached-user-policies --user-name [name] --profile flaws-level6-audit
+[paste real output]
+
+$ aws iam list-policy-versions --policy-arn [arn] --profile flaws-level6-audit
+[paste real output]
+
+$ aws iam get-policy-version --policy-arn [arn] --version-id [v] --profile flaws-level6-audit
+[paste real output]
+
+Step 3 — Enumerate Lambda / API Gateway
+$ aws lambda list-functions --profile flaws-level6-audit
+[paste real output]
+
+$ aws apigateway get-rest-apis --profile flaws-level6-audit
+[paste real output]
+
+Step 4 — Identify intended stage/endpoint and complete the level
+$ [command]
+[paste real, redacted output — do not include the final solution URL in this report]
+
+Level 6 Findings Summary:
+  Misconfiguration: [ ]
+  AWS service/API: [ ]
+  Evidence: [screenshot/log reference]
+  Business impact: [ ]
+  MITRE mapping: [ ]
+  Preventive controls (>=2): [ ]
+
+====================================================================
+LEVEL 4-6 ATTACK-PATH TABLE
+====================================================================
+Hop | Credential/Permission Used | AWS API Call(s) | New Access Gained | Control That Breaks This Hop
+----|------------------------------|------------------|---------------------|-------------------------------
+ 1  |                              |                  |                     |
+ 2  |                              |                  |                     |
+ 3  |                              |                  |                     |
+
+====================================================================
+REDACTION CHECKLIST BEFORE SAVING THIS FILE
+====================================================================
+[ ] No AccessKeyId / SecretAccessKey / SessionToken values present in full
+[ ] No full 12-digit AWS account ID present (last 4 digits only, if any)
+[ ] No final Level 6 solution URL included
+[ ] Level 4 cleanup evidence captured and referenced (PhaseD_Level4_Cleanup.png)
+[ ] All screenshots referenced here are saved in the Evidence folder

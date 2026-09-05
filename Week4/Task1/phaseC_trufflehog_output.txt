@@ -1,0 +1,5 @@
+🐷🔑🐷  TruffleHog. Unearth your secrets. 🐷🔑🐷
+
+2026-08-29T20:03:34Z	info-0	trufflehog	running source	{"source_manager_worker_id": "E8WJs", "with_units": true}
+2026-08-29T20:03:34Z	info-0	trufflehog	scanning repo	{"source_manager_worker_id": "E8WJs", "unit_kind": "dir", "unit": "/tmp/trufflehog-1035-696722246", "repo": "file:///home/cloudshell-user/secret-lab"}
+2026-08-29T20:03:34Z	info-0	trufflehog	finished scanning	{"chunks": 5, "bytes": 464, "verified_secrets": 0, "unverified_secrets": 0, "scan_duration": "41.25453ms", "trufflehog_version": "3.97.1", "verification_caching": {"Hits":0,"Misses":0,"HitsWasted":0,"AttemptsSaved":0,"VerificationTimeSpentMS":0}}

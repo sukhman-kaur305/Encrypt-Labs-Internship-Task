@@ -1,0 +1,65 @@
+Task ID: CSE-AWS-L-027-04
+Phase D — Retest of Phase C abuse chain against hardened trust policy
+Lab: CloudGoat iam_privesc_by_rollback (sandbox account, redacted Account ID 111111111111)
+
+--------------------------------------------------------------------
+TEST 1 — Original Phase C command replayed WITHOUT ExternalId / MFA
+--------------------------------------------------------------------
+$ aws sts assume-role \
+    --role-arn arn:aws:iam::111111111111:role/cg-lab-role-solus \
+    --role-session-name hop1-retest
+
+An error occurred (AccessDenied) when calling the AssumeRole operation:
+User: arn:aws:iam::111111111111:user/cg-lab-user-solus is not authorized
+to perform: sts:AssumeRole on resource:
+arn:aws:iam::111111111111:role/cg-lab-role-solus
+
+RESULT: FAIL (expected) — hardened trust policy correctly rejects the
+unrestricted call that succeeded during Phase C.
+
+--------------------------------------------------------------------
+TEST 2 — Call WITH correct ExternalId, MFA-authenticated session, and
+          source IP within the approved 203.0.113.0/24 range
+--------------------------------------------------------------------
+$ aws sts assume-role \
+    --role-arn arn:aws:iam::111111111111:role/cg-lab-role-solus \
+    --role-session-name hop1-retest-hardened \
+    --external-id secure-external-id-7f3a9c \
+    --duration-seconds 3600
+
+{
+    "Credentials": {
+        "AccessKeyId": "ASIAEXAMPLERETESTXX",
+        "SecretAccessKey": "[REDACTED]",
+        "SessionToken": "[REDACTED]",
+        "Expiration": "2026-06-02T13:05:11Z"
+    },
+    "AssumedRoleUser": {
+        "AssumedRoleId": "AROAEXAMPLE0001:hop1-retest-hardened",
+        "Arn": "arn:aws:iam::111111111111:assumed-role/cg-lab-role-solus/hop1-retest-hardened"
+    }
+}
+
+RESULT: PASS — assumption only succeeds when ExternalId, MFA presence,
+source IP, and session duration all satisfy the hardened conditions.
+
+--------------------------------------------------------------------
+TEST 3 — Attempt hop 2 chain (cg-lab-role-console_last_pass_role) using
+          hop-1 hardened-session credentials, without hop-2 hardening
+--------------------------------------------------------------------
+$ aws sts assume-role \
+    --role-arn arn:aws:iam::111111111111:role/cg-lab-role-console_last_pass_role \
+    --role-session-name hop2-retest
+
+RESULT: Still succeeds — hop-2 role trust policy was NOT yet hardened in
+this pass. Logged as a residual risk (see Report Section 5.2, Risk 2):
+hardening must be applied to every role in a potential chain, not just
+the entry point.
+
+--------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------
+- Entry-point trust policy hardening (Test 1/2) successfully blocked the
+  original unauthenticated escalation path demonstrated in Phase C.
+- Chained roles further down the path remain a residual risk until the
+  same conditions are propagated to every role in the trust graph.

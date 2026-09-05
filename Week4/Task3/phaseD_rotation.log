@@ -1,0 +1,56 @@
+Script started on 2026-08-30 19:12:17+00:00 [TERM="screen-256color" TTY="/dev/pts/3" COLUMNS="183" LINES="24"]
+kcloudshell-user@:~/cloudgoat\[?2004hcloudgoat $ COMPROMISED_KEY_ID=$(aws configure get aws_access_key_id --profile cg_leak)
+[?2004l
+
+kcloudshell-user@:~/cloudgoat\[?2004hcloudgoat $ echo "$COMPROMISED_KEY_ID"
+[?2004l
+AKIA[REDACTED-ACCESS-KEY-ID]
+kcloudshell-user@:~/cloudgoat\[?2004hcloudgoat $ aws iam update-access-key \
+[?2004l
+[?2004h>   --access-key-id "$COMPROMISED_KEY_ID" \
+[?2004l
+[?2004h>   --status Inactive \
+[?2004l
+[?2004h>   --user-name s3tester \
+[?2004l
+[?2004h>   --profile cloudgoat-lab
+[?2004l
+
+aws: [ERROR]: An error occurred (AccessDenied) when calling the UpdateAccessKey operation: User: arn:aws:iam::XXXXXXXXXXXX:user/dev-user is not authorized to perform: iam:UpdateAccessKey on resource: user s3tester because no permissions boundary allows the iam:UpdateAccessKey action. Go to https://us-east-1.console.aws.amazon.com/iam/home?region=us-east-1#/authorization-details/6mphvftucoc96igdu5gvvm2f7 for complete details, or call the GetRequestAuthorizationDetails API with the following authorization id: 6mphvftucoc96igdu5gvvm2f7
+kcloudshell-user@:~/cloudgoat\[?2004hcloudgoat $ aws iam update-access-key \
+[?2004l
+[?2004h>   --access-key-id "$COMPROMISED_KEY_ID" \
+[?2004l
+[?2004h>   --status Inactive \
+[?2004l
+[?2004h>   --user-name s3tester \
+[?2004l
+[?2004h>   --profile cybrisfun
+[?2004l
+kcloudshell-user@:~/cloudgoat\[?2004hcloudgoat $ aws iam list-access-keys \
+[?2004l
+[?2004h>   --user-name s3tester \
+[?2004l
+[?2004h>   --profile cybrisfun
+[?2004l
+[?1h=
+{[m
+    "AccessKeyMetadata": [[m
+        {[m
+            "UserName": "s3tester",[m
+            "AccessKeyId": "AKIA[REDACTED-ACCESS-KEY-ID]",[m
+            "Status": "Inactive",[m
+            "CreateDate": "2026-08-25T23:54:42+00:00"[m
+        }[m
+    ][m
+}[m
+
+[K[?1l>kcloudshell-user@:~/cloudgoat\[?2004hcloudgoat $ aws sts get-caller-identity --profile cg_leak
+[?2004l
+
+aws: [ERROR]: An error occurred (InvalidClientTokenId) when calling the GetCallerIdentity operation: The security token included in the request is invalid.
+kcloudshell-user@:~/cloudgoat\[?2004hcloudgoat $ exit
+[?2004l
+exit
+
+Script done on 2026-08-30 19:13:16+00:00 [COMMAND_EXIT_CODE="254"]
