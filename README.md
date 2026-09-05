@@ -36,7 +36,7 @@ Each `taskN/` folder is self-contained and typically includes:
 
 | Week | Task | Task ID | Title | Skill Domain | Status |
 |------|------|---------|-------|---------------|--------|
-| 1 | 1 | CSE-AWS-T001 | Cloud Security Foundations & AWS Shared Responsibility Model | Shared Responsibility Model / IAM, S3, EC2, CloudTrail Risk Mapping | Not started |
+| 1 | 1 | CSE-AWS-T001 | Cloud Security Foundations & AWS Shared Responsibility Model | Shared Responsibility Model / IAM, S3, EC2, CloudTrail Risk Mapping | Complete |
 | 1 | 2 | CSE-AWS-L-002-04 | AWS Account Hardening and Secure Cloud Security Homelab Setup | Account Hardening / MFA / CloudTrail, Config, GuardDuty / CloudGoat & iam-vulnerable | Complete |
 | 1 | 3 | CSE-AWS-L-003-04 | Secure AWS CLI Configuration and Identity-Based Access Operations | IAM / AWS CLI Profiles / Least Privilege / Temporary Credentials & MFA | Complete |
 | 1 | 4 | | Cloud Threat Modeling and Attack Surface Identification in AWS | Threat Modeling / Attack Surface (STRIDE + MITRE ATT&CK) | Complete |
