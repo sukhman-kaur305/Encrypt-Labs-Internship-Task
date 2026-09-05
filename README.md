@@ -67,8 +67,6 @@ Each `taskN/` folder is self-contained and typically includes:
 | 7 | 4 | | AWS Multi-Service Enumeration, Correlation & Risk Prioritization | Multi-Service Enumeration / IAM, S3, EC2, Lambda / Risk Prioritization | Complete |
 | 8 | 1 | CSE-AWS-P-029-08 | Capstone: End-to-End AWS Cloud Security Assessment (flaws.cloud L1–6) | S3, IAM, EC2/EBS, IMDS, Lambda/API Gateway | Complete |
 
-*(Fill in week/task numbers above to match your actual folder layout as you go. `CSE-AWS-T001` is assumed to be Week 1 / Task 1 as the introductory foundations task — adjust if your folder layout differs. Weeks 6–8 task titles are taken directly from their task-brief headers; add Task IDs for those once assigned.)*
-
 ## Tools & frameworks used across tasks
 
 - **AWS CLI v2, IAM Policy Simulator, IAM Access Analyzer**
